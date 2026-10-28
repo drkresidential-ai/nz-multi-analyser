@@ -224,7 +224,19 @@ el.innerHTML=output.map((r,i)=>'<div class="pick"><div class="row"><b>'+r.name+'
 el.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{
 slip=[...output[+b.dataset.rec].picks];renderSlip();
 });
+
+function openBetSlip() {
+  setTimeout(() => {
+    const section = document.getElementById('slip');
+    if (section) {
+      section.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }, 100);
 }
+
 function renderSlip(){
 let el=$('slip');
 el.innerHTML=slip.length?slip.map((o,i)=>'<div class="pick"><div class="row"><b>'+esc(o.team)+'</b><button class="secondary" data-del="'+i+'">Remove</button></div><small>'+esc(o.sport)+' · '+esc(o.match)+'<br>'+esc(o.book)+' @ '+o.price.toFixed(2)+'</small></div>').join(''):'<p class="muted">No selections yet.</p>';
