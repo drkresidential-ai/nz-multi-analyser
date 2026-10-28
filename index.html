@@ -5,594 +5,276 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b1220">
-<title>NZ Multi Analyser | NBA Odds</title>
+<title>NZ Multi Analyser — All Sports</title>
 <style>
-:root{
-  --bg:#0b1220;--panel:#142136;--panel2:#1c2c44;
-  --text:#f2f6ff;--muted:#a5b4c8;--line:#30415b;
-  --green:#40d9a2;--blue:#73aaff;--amber:#ffcf79;
-}
+:root{color-scheme:dark;--bg:#0b1220;--card:#152238;--line:#34465e;--muted:#adbed1;--green:#42d6a2;--yellow:#f3c76e}
 *{box-sizing:border-box}
-body{
-  margin:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,Arial,sans-serif;
-}
-header{
-  padding:22px 16px;background:#101c2e;
-  border-bottom:1px solid var(--line);
-}
-.wrap{max-width:1100px;margin:auto;padding:16px}
-h1{margin:0;font-size:26px}
-h2{font-size:20px;margin:0 0 14px}
+body{margin:0;background:var(--bg);color:#f4f8ff;font:15px system-ui,-apple-system,sans-serif}
+header{background:#101d30;padding:24px 16px;border-bottom:1px solid var(--line)}
+main,.wrap{max-width:1050px;margin:auto}
+main{padding:16px}
+h1{margin:4px 0;font-size:27px}
+h2{margin:0 0 12px;font-size:20px}
 p{line-height:1.5}
 .muted,small{color:var(--muted)}
-.eyebrow{
-  color:var(--green);font-size:12px;
-  letter-spacing:1.4px;font-weight:800;
-}
-.card{
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:16px;padding:17px;margin-bottom:16px;
-}
-.grid{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-}
-.stat{
-  background:var(--panel2);padding:14px;
-  border-radius:12px;
-}
-.stat strong{display:block;font-size:22px;margin-top:5px}
-label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-input,select{
-  width:100%;padding:12px;border-radius:10px;
-  border:1px solid var(--line);background:#0d192b;
-  color:var(--text);font-size:16px;
-}
-button{
-  background:var(--green);color:#092016;border:0;
-  padding:12px 15px;border-radius:10px;font-weight:800;
-  cursor:pointer;font-size:14px;
-}
-button.secondary{
-  background:var(--panel2);color:var(--text);
-  border:1px solid var(--line);
-}
-button:disabled{opacity:.45;cursor:not-allowed}
-.row{
-  display:flex;gap:10px;align-items:center;
-  justify-content:space-between;flex-wrap:wrap;
-}
-.toolbar{display:grid;gap:10px;margin-bottom:15px}
-.game{
-  border:1px solid var(--line);border-radius:13px;
-  padding:14px;margin:12px 0;background:#101d30;
-}
-.game-title{font-weight:800;font-size:16px}
-.pill{
-  display:inline-block;border-radius:100px;
-  background:#263d52;padding:5px 9px;
-  font-size:11px;color:var(--green);
-}
-.price-grid{
-  display:grid;grid-template-columns:1fr 1fr;
-  gap:9px;margin-top:12px;
-}
-.price{
-  background:var(--panel2);padding:12px;
-  border:1px solid var(--line);border-radius:10px;
-}
-.price strong{font-size:21px;display:block}
-.price button{width:100%;margin-top:10px}
-.pick{
-  padding:12px;background:var(--panel2);
-  border-radius:11px;margin-bottom:9px;
-}
-.pick strong{display:block}
-.pick small{display:block;margin:5px 0}
-.notice{
-  border-left:3px solid var(--amber);
-  background:#342b21;padding:12px;border-radius:8px;
-  font-size:13px;line-height:1.5;
-}
+.eyebrow{color:var(--green);font-size:12px;letter-spacing:1.2px;font-weight:800}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{padding:12px;background:#203149;border-radius:10px}
+.stat strong{display:block;font-size:21px}
+.row{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+label{display:block;color:var(--muted);font-size:13px;margin:8px 0 5px}
+select,input{width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:#0d192b;color:white;font-size:16px}
+button{padding:11px 13px;border:0;border-radius:9px;background:var(--green);color:#06251a;font-weight:800;cursor:pointer}
+button.secondary{background:#273951;color:white;border:1px solid var(--line)}
+button:disabled{opacity:.5}
+.notice{border-left:3px solid var(--yellow);background:#302b25;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px}
+.pick,.event{background:#102036;border:1px solid var(--line);padding:13px;border-radius:11px;margin:9px 0}
+.tag{display:inline-block;background:#263d50;color:#9be9cb;border-radius:30px;padding:4px 9px;font-size:12px}
+.weak{color:var(--yellow)}
 .good{color:var(--green)}
-.error{color:#ff9999}
-.hidden{display:none!important}
-footer{text-align:center;color:var(--muted);padding:20px}
-@media(min-width:700px){
-  .dashboard{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
-  .toolbar{grid-template-columns:1fr 1fr auto}
-  .grid{grid-template-columns:repeat(4,1fr)}
+.error{color:#ff9a9a}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.choices button{width:100%;margin-top:8px}
+.controls{display:grid;gap:9px}
+.foot{color:var(--muted);font-size:12px;padding:14px 0 35px}
+@media(min-width:760px){
+.controls{grid-template-columns:repeat(3,1fr)}
+.layout{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+.stats{grid-template-columns:repeat(4,1fr)}
 }
 </style>
 </head>
 <body>
-
 <header>
-  <div class="wrap">
-    <div class="eyebrow">SPORTS ODDS DASHBOARD</div>
-    <h1>🏀 NZ Multi Analyser</h1>
-    <p class="muted">Compare NBA bookmaker prices and build a three-leg multi.</p>
-    <div class="row">
-      <span id="status" class="pill">Loading feed...</span>
-      <button class="secondary" id="refresh">↻ Refresh feed</button>
-    </div>
-  </div>
+<div class="wrap">
+<div class="eyebrow">ALL SPORTS • 85% RECOMMENDATION PRIORITY</div>
+<h1>🏆 NZ Multi Analyser</h1>
+<p class="muted">Automatic multi suggestions from published bookmaker prices</p>
+<div class="row">
+<span id="status" class="tag">Loading feed...</span>
+<button class="secondary" id="refresh">Refresh published feed</button>
+</div>
+</div>
 </header>
-
-<main class="wrap">
-
-  <div class="notice">
-    <strong>Price information:</strong>
-    Prices are sourced from The Odds API, Australian region.
-    They are not verified NZ TAB prices, and this website
-    does not provide live in-play odds. Always check current
-    prices and team information before placing a bet.
-  </div>
-
-  <section class="card" style="margin-top:16px">
-    <div class="grid">
-      <div class="stat">
-        <small>Upcoming matches</small>
-        <strong id="matchCount">—</strong>
-      </div>
-      <div class="stat">
-        <small>Bookmakers</small>
-        <strong id="bookCount">—</strong>
-      </div>
-      <div class="stat">
-        <small>Multi legs</small>
-        <strong id="legCount">0 / 3</strong>
-      </div>
-      <div class="stat">
-        <small>Feed updated</small>
-        <strong id="updated" style="font-size:13px">—</strong>
-      </div>
-    </div>
-  </section>
-
-  <div class="dashboard">
-
-    <section class="card">
-      <h2>Upcoming NBA games</h2>
-      <div class="toolbar">
-        <div>
-          <label for="search">Search teams</label>
-          <input id="search" placeholder="Search NBA teams">
-        </div>
-        <div>
-          <label for="bookmaker">Bookmaker filter</label>
-          <select id="bookmaker">
-            <option value="">All bookmakers</option>
-          </select>
-        </div>
-        <div style="align-self:end">
-          <button class="secondary" id="sort">Sort by start time</button>
-        </div>
-      </div>
-      <div id="games">
-        <p class="muted">Loading games...</p>
-      </div>
-    </section>
-
-    <section>
-      <div class="card">
-        <h2>My three-leg multi</h2>
-        <p class="muted">
-          Choose up to three selections. Only one team
-          can be selected from each match.
-        </p>
-
-        <div id="picks">
-          <p class="muted">No selections added yet.</p>
-        </div>
-
-        <div>
-          <label for="stake">Stake (NZD)</label>
-          <input id="stake" type="number" min="0" step="0.01" value="10">
-        </div>
-
-        <div class="grid" style="margin-top:13px">
-          <div class="stat">
-            <small>Combined odds</small>
-            <strong id="combined">—</strong>
-          </div>
-          <div class="stat">
-            <small>Potential return</small>
-            <strong id="returns">$0.00</strong>
-          </div>
-          <div class="stat">
-            <small>Potential profit</small>
-            <strong id="profit">$0.00</strong>
-          </div>
-          <div class="stat">
-            <small>Implied probability</small>
-            <strong id="probability">—</strong>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:15px">
-          <button id="copy" disabled>Copy multi summary</button>
-          <button class="secondary" id="clear">Clear selections</button>
-        </div>
-
-        <p class="muted" style="font-size:12px">
-          Combined odds are the product of selected decimal prices.
-          Implied probability is calculated as 1 divided by
-          combined odds. It is not an independent prediction
-          of winning probability.
-        </p>
-      </div>
-
-      <div class="card">
-        <h2>How to use</h2>
-        <p class="muted">
-          1. Browse upcoming NBA games.<br>
-          2. Compare bookmaker prices.<br>
-          3. Add up to three different games.<br>
-          4. Enter your stake.<br>
-          5. Review the calculated return and copy your selections.
-        </p>
-      </div>
-    </section>
-  </div>
+<main>
+<div class="notice">
+<b>Important:</b> This system ranks odds-based selections, not proven winning bets. Until independently tested probability models are connected, it cannot verify positive expected value. Australian-region bookmaker odds are not NZ TAB prices. Check prices, lineups and event status before acting.
+</div>
+<section class="card">
+<div class="grid stats">
+<div class="stat"><small>Upcoming events</small><strong id="count">—</strong></div>
+<div class="stat"><small>Sports covered</small><strong id="sports">—</strong></div>
+<div class="stat"><small>Recommendation priority</small><strong>85%</strong></div>
+<div class="stat"><small>Feed updated</small><strong id="updated" style="font-size:13px">—</strong></div>
+</div>
+</section>
+<section class="card">
+<h2>⚙️ Auto Multi Picker</h2>
+<div class="controls">
+<div><label for="window">Starting within</label><select id="window">
+<option value="2">2 hours</option>
+<option value="6" selected>6 hours</option>
+<option value="12">12 hours</option>
+<option value="24">24 hours</option>
+<option value="48">48 hours</option>
+</select></div>
+<div><label for="legs">Legs per multi</label><select id="legs">
+<option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+</select></div>
+<div><label for="mix">Sports combinations</label><select id="mix">
+<option value="mixed">Mixed sports allowed</option>
+<option value="single">Same sport only</option>
+</select></div>
+</div>
+<p class="muted" style="font-size:12px">The 85% setting prioritises displaying a fallback selection when qualifying events exist; it is not a confidence score. A genuine value claim requires a separately validated model.</p>
+<button id="generate">Generate recommended multis</button>
+</section>
+<div class="layout">
+<div>
+<section class="card">
+<h2>Recommended multis</h2>
+<div id="recommendations"><p class="muted">Loading recommendations...</p></div>
+</section>
+<section class="card">
+<h2>Upcoming events and odds</h2>
+<div class="controls" style="grid-template-columns:1fr 1fr">
+<div><label for="search">Search</label><input id="search" placeholder="Team or sport"></div>
+<div><label for="sportFilter">Sport</label><select id="sportFilter"><option value="">All sports</option></select></div>
+</div>
+<div id="events"></div>
+</section>
+</div>
+<div>
+<section class="card">
+<h2>My multi slip</h2>
+<div id="slip"><p class="muted">Choose a recommendation or add your own selections.</p></div>
+<label for="stake">Stake (NZD)</label>
+<input type="number" min="0" step="0.01" value="10" id="stake">
+<div class="grid" style="margin-top:12px">
+<div class="stat"><small>Combined odds</small><strong id="combined">—</strong></div>
+<div class="stat"><small>Potential return</small><strong id="return">$0.00</strong></div>
+<div class="stat"><small>Potential profit</small><strong id="profit">$0.00</strong></div>
+<div class="stat"><small>Implied probability*</small><strong id="prob">—</strong></div>
+</div>
+<div class="row" style="margin-top:13px">
+<button id="copy">Copy multi</button>
+<button class="secondary" id="clear">Clear</button>
+</div>
+<p class="muted" style="font-size:12px">*Raw implied probability assumes independent outcomes and ignores bookmaker margin. Mixed-bookmaker prices may not be available as one actual bet.</p>
+</section>
+</div>
+</div>
+<div class="foot">For information only. No betting placement, guarantee of returns or verified positive expected value.</div>
 </main>
-
-<footer>
-  NZ Multi Analyser · Information only · Bet responsibly
-</footer>
-
 <script>
-"use strict";
-
-const FEED = "./data/odds.json";
-let events = [];
-let selections = [];
-let sortAscending = true;
-let feedUpdated = null;
-
-const $ = id => document.getElementById(id);
-
-function money(n){
-  return new Intl.NumberFormat("en-NZ",{
-    style:"currency",currency:"NZD"
-  }).format(Number.isFinite(n)?n:0);
+'use strict';
+const $=id=>document.getElementById(id);
+let events=[],slip=[],updated=null,meta={};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>new Intl.NumberFormat('en-NZ',{style:'currency',currency:'NZD'}).format(Number.isFinite(n)?n:0);
+const time=s=>{let d=new Date(s);return isNaN(+d)?'Unknown':d.toLocaleString('en-NZ',{timeZone:'Pacific/Auckland',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+' NZ';};
+function available(e){return e&&new Date(e.commence_time).getTime()>Date.now()}
+function sport(e){return e.sport_title||e.sport_key||'Other'}
+function offers(e){
+let out=[];
+for(let b of e.bookmakers||[])
+for(let m of b.markets||[])
+if(m.key==='h2h')
+for(let o of m.outcomes||[]){
+let price=Number(o.price);
+if(price>1&&Number.isFinite(price)&&o.name)
+out.push({id:e.id,sport:sport(e),match:e.away_team+' vs '+e.home_team,team:o.name,price,book:b.title||b.key,start:e.commence_time});
 }
-
-function number(n,d=2){
-  return Number(n).toFixed(d);
+return out;
 }
-
-function dateText(value){
-  if(!value)return "Unknown";
-  const d = new Date(value);
-  if(isNaN(d.getTime()))return "Unknown";
-  return d.toLocaleString("en-NZ",{
-    timeZone:"Pacific/Auckland",
-    day:"numeric",month:"short",
-    hour:"numeric",minute:"2-digit"
-  })+" NZ time";
+function best(e){
+let result=new Map();
+for(let o of offers(e)){
+let prev=result.get(o.team);
+if(!prev||o.price>prev.price)result.set(o.team,o);
 }
-
-function safe(text){
-  return String(text??"").replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",
-    '"':"&quot;","'":"&#39;"
-  })[c]);
+return [...result.values()];
 }
-
-function upcoming(event){
-  const start = new Date(event.commence_time).getTime();
-  return Number.isFinite(start)&&start>Date.now();
-}
-
-function validPrice(outcome){
-  const p = Number(outcome.price);
-  return Number.isFinite(p)&&p>1;
-}
-
-function getOffers(event,filter){
-  const offers=[];
-  for(const book of event.bookmakers||[]){
-    if(filter&&book.key!==filter)continue;
-    for(const market of book.markets||[]){
-      if(market.key!=="h2h")continue;
-      for(const outcome of market.outcomes||[]){
-        if(!validPrice(outcome))continue;
-        if(outcome.name!==event.home_team &&
-           outcome.name!==event.away_team)continue;
-        offers.push({
-          eventId:event.id,
-          eventName:event.away_team+" vs "+event.home_team,
-          team:outcome.name,
-          price:Number(outcome.price),
-          bookmaker:book.title||book.key,
-          bookmakerKey:book.key,
-          start:event.commence_time
-        });
-      }
-    }
-  }
-  return offers;
-}
-
-function bestOffers(event,filter){
-  const best={};
-  for(const offer of getOffers(event,filter)){
-    if(!best[offer.team]||offer.price>best[offer.team].price){
-      best[offer.team]=offer;
-    }
-  }
-  return best;
-}
-
-function updateBookmakers(){
-  const select=$("bookmaker");
-  const previous=select.value;
-  const books=new Map();
-
-  for(const event of events){
-    for(const book of event.bookmakers||[]){
-      books.set(book.key,book.title||book.key);
-    }
-  }
-
-  select.innerHTML='<option value="">All bookmakers</option>';
-
-  for(const [key,title] of [...books].sort(
-    (a,b)=>a[1].localeCompare(b[1])
-  )){
-    const opt=document.createElement("option");
-    opt.value=key;
-    opt.textContent=title;
-    select.appendChild(opt);
-  }
-
-  if(books.has(previous))select.value=previous;
-  $("bookCount").textContent=books.size;
-}
-
-function renderGames(){
-  const query=$("search").value.toLowerCase().trim();
-  const filter=$("bookmaker").value;
-
-  const list=events.filter(upcoming).filter(e=>
-    (e.home_team+" "+e.away_team).toLowerCase().includes(query)
-  ).sort((a,b)=>sortAscending
-    ?new Date(a.commence_time)-new Date(b.commence_time)
-    :new Date(b.commence_time)-new Date(a.commence_time)
-  );
-
-  $("matchCount").textContent=events.filter(upcoming).length;
-
-  if(!list.length){
-    $("games").innerHTML=
-      '<p class="muted">No upcoming matches found in the published feed.</p>';
-    return;
-  }
-
-  $("games").innerHTML=list.map(event=>{
-    const offers=bestOffers(event,filter);
-    const teams=[event.away_team,event.home_team];
-
-    const buttons=teams.map(team=>{
-      const offer=offers[team];
-      if(!offer){
-        return '<div class="price"><strong>'+safe(team)+
-          '</strong><small>No price available</small></div>';
-      }
-
-      const selected=selections.some(s=>
-        s.eventId===offer.eventId&&s.team===offer.team
-      );
-
-      return '<div class="price">'+
-        '<small>'+safe(team)+'</small>'+
-        '<strong>'+number(offer.price)+'</strong>'+
-        '<small>'+safe(offer.bookmaker)+'</small>'+
-        '<button data-event="'+safe(offer.eventId)+
-        '" data-team="'+safe(team)+'" '+
-        (selected?'class="secondary"':'')+'>'+
-        (selected?'Selected ✓':'Add to multi')+
-        '</button></div>';
-    }).join("");
-
-    return '<div class="game">'+
-      '<div class="game-title">'+safe(event.away_team)+
-      ' vs '+safe(event.home_team)+'</div>'+
-      '<p class="muted" style="font-size:12px">'+
-      safe(dateText(event.commence_time))+'</p>'+
-      '<div class="price-grid">'+buttons+'</div>'+
-      '</div>';
-  }).join("");
-
-  $("games").querySelectorAll("button[data-event]").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      addSelection(btn.dataset.event,btn.dataset.team);
-    });
-  });
-}
-
-function addSelection(eventId,team){
-  const event=events.find(e=>e.id===eventId);
-  if(!event||!upcoming(event))return;
-
-  const existing=selections.find(s=>
-    s.eventId===eventId&&s.team===team
-  );
-
-  if(existing){
-    selections=selections.filter(s=>s!==existing);
-    renderAll();
-    return;
-  }
-
-  const offer=bestOffers(event,$("bookmaker").value)[team];
-  if(!offer)return;
-
-  const sameGame=selections.find(s=>s.eventId===eventId);
-  if(sameGame){
-    selections=selections.filter(s=>s.eventId!==eventId);
-  }else if(selections.length>=3){
-    alert("Your multi already has three legs. Remove one first.");
-    return;
-  }
-
-  selections.push(offer);
-  renderAll();
-}
-
-function removeSelection(index){
-  selections.splice(index,1);
-  renderAll();
-}
-
-function renderMulti(){
-  selections=selections.filter(s=>
-    events.some(e=>e.id===s.eventId&&upcoming(e))
-  );
-
-  $("legCount").textContent=selections.length+" / 3";
-
-  if(!selections.length){
-    $("picks").innerHTML=
-      '<p class="muted">No selections added yet.</p>';
-  }else{
-    $("picks").innerHTML=selections.map((s,i)=>
-      '<div class="pick"><div class="row">'+
-      '<strong>Leg '+(i+1)+": "+safe(s.team)+'</strong>'+
-      '<button class="secondary" data-remove="'+i+'">Remove</button>'+
-      '</div><small>'+safe(s.eventName)+'</small>'+
-      '<small>'+safe(s.bookmaker)+" · "+number(s.price)+
-      '</small></div>'
-    ).join("");
-
-    $("picks").querySelectorAll("[data-remove]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        removeSelection(Number(btn.dataset.remove));
-      });
-    });
-  }
-
-  const stake=Math.max(0,Number($("stake").value)||0);
-  const combined=selections.reduce((total,s)=>total*s.price,1);
-  const returns=selections.length?stake*combined:0;
-  const profit=selections.length?returns-stake:0;
-
-  $("combined").textContent=selections.length
-    ?number(combined):"—";
-  $("returns").textContent=money(returns);
-  $("profit").textContent=money(profit);
-  $("probability").textContent=selections.length
-    ?number(100/combined,1)+"%":"—";
-
-  $("copy").disabled=selections.length!==3;
-}
-
-function renderAll(){
-  renderGames();
-  renderMulti();
-}
-
-function summary(){
-  const stake=Math.max(0,Number($("stake").value)||0);
-  const combined=selections.reduce((n,s)=>n*s.price,1);
-
-  return [
-    "NZ MULTI ANALYSER — THREE-LEG MULTI",
-    ...selections.map((s,i)=>
-      (i+1)+". "+s.team+" | "+s.eventName+
-      " | "+s.bookmaker+" @ "+number(s.price)
-    ),
-    "Combined odds: "+number(combined),
-    "Stake: "+money(stake),
-    "Potential return: "+money(stake*combined),
-    "Potential profit: "+money(stake*(combined-1)),
-    "Feed updated: "+(feedUpdated||"Unknown"),
-    "Published Australian-region prices, not verified NZ TAB odds.",
-    "Check current prices, injuries and lineups before betting."
-  ].join("\n");
-}
-
-async function copyText(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    alert("Multi summary copied.");
-  }catch(err){
-    const area=document.createElement("textarea");
-    area.value=text;
-    document.body.appendChild(area);
-    area.select();
-    try{
-      document.execCommand("copy");
-      alert("Multi summary copied.");
-    }catch(e){
-      alert("Copy failed. Please try again.");
-    }
-    area.remove();
-  }
-}
-
-async function loadFeed(){
-  $("status").textContent="Loading feed...";
-
-  try{
-    const response=await fetch(
-      FEED+"?t="+Date.now(),{cache:"no-store"}
-    );
-
-    if(!response.ok){
-      throw new Error("HTTP "+response.status);
-    }
-
-    const data=await response.json();
-
-    if(!Array.isArray(data.events)){
-      throw new Error("Invalid events data");
-    }
-
-    events=data.events;
-    feedUpdated=data.updated_at||null;
-
-    $("updated").textContent=dateText(feedUpdated);
-    $("status").textContent="Published feed loaded";
-    $("status").className="pill";
-
-    updateBookmakers();
-    renderAll();
-
-  }catch(err){
-    $("status").textContent="Feed unavailable";
-    $("status").className="pill error";
-    $("games").innerHTML=
-      '<p class="error">Unable to load data/odds.json. '+
-      'Check your GitHub Actions workflow and published file.</p>';
-    console.error(err);
-  }
-}
-
-$("refresh").addEventListener("click",loadFeed);
-$("search").addEventListener("input",renderGames);
-$("bookmaker").addEventListener("change",renderGames);
-$("stake").addEventListener("input",renderMulti);
-
-$("sort").addEventListener("click",()=>{
-  sortAscending=!sortAscending;
-  $("sort").textContent=sortAscending
-    ?"Sort by start time":"Sort by latest first";
-  renderGames();
+function candidates(){
+let hours=+$('window').value;
+return events.filter(e=>available(e)&&new Date(e.commence_time)-Date.now()<=hours*3600000).flatMap(e=>{
+let all=offers(e),opts=best(e);
+return opts.map(o=>{
+let matching=all.filter(x=>x.team===o.team).map(x=>x.price);
+let dispersion=matching.length>1?(Math.max(...matching)/Math.min(...matching)-1):0;
+let implied=1/o.price;
+return {...o,implied,dispersion,minutes:(new Date(o.start)-Date.now())/60000};
 });
-
-$("clear").addEventListener("click",()=>{
-  selections=[];
-  renderAll();
+}).filter(o=>o.implied>0&&o.implied<1);
+}
+// Transparent odds-based heuristics, not calibrated predictive probabilities.
+function score(o,mode){
+let p=o.implied,soon=1-Math.min(o.minutes/2880,1);
+if(mode==='conservative')return p*100+soon*5;
+if(mode==='balanced')return (p*(1-p))*100+soon*5;
+if(mode==='value')return o.dispersion*70+soon*3+p*3;
+return (1-p)*100+soon*5;
+}
+function makeMulti(pool,mode){
+let n=+$('legs').value,same=$('mix').value==='single';
+let ranked=[...pool].sort((a,b)=>score(b,mode)-score(a,mode));
+let groups=same?[...new Set(ranked.map(o=>o.sport))].map(s=>ranked.filter(o=>o.sport===s)):[ranked];
+let choices=[];
+for(let group of groups){
+let chosen=[],used=new Set();
+for(let o of group){
+if(used.has(o.id))continue;
+chosen.push(o);used.add(o.id);
+if(chosen.length===n)break;
+}
+if(chosen.length===n)choices.push(chosen);
+}
+choices.sort((a,b)=>b.reduce((t,o)=>t+score(o,mode),0)-a.reduce((t,o)=>t+score(o,mode),0));
+return choices[0]||null;
+}
+function build(){
+let pool=candidates();
+let modes=[['conservative','🛡️ Conservative'],['balanced','⚖️ Balanced'],['value','🔎 Price comparison'],['high','⚡ High risk']];
+let output=[];
+for(let [key,name] of modes){
+let picks=makeMulti(pool,key);
+if(!picks)continue;
+let combined=picks.reduce((a,b)=>a*b.price,1);
+output.push({key,name,picks,combined});
+}
+window.recs=output;
+let el=$('recommendations');
+if(!output.length){
+el.innerHTML='<p class="weak">No multi available: not enough distinct upcoming events with usable odds for the selected settings. Try a longer time window or fewer legs.</p>';
+return;
+}
+el.innerHTML=output.map((r,i)=>'<div class="pick"><div class="row"><b>'+r.name+'</b><span class="tag weak">Lower-confidence fallback</span></div><p class="muted" style="font-size:12px">'+r.picks.map(o=>esc(o.team)+' ('+esc(o.sport)+')').join(' · ')+'</p><div class="row"><span><b>'+r.combined.toFixed(2)+'</b> combined odds</span><button data-rec="'+i+'">Use this multi</button></div><small>Bookmaker price ranking only; no independently validated positive EV. '+(r.key==='value'?'Highlights bookmaker price disagreement, not proven value.':'')+'</small></div>').join('');
+el.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{
+slip=[...output[+b.dataset.rec].picks];renderSlip();
 });
-
-$("copy").addEventListener("click",()=>{
-  if(selections.length===3)copyText(summary());
+}
+function renderSlip(){
+let el=$('slip');
+el.innerHTML=slip.length?slip.map((o,i)=>'<div class="pick"><div class="row"><b>'+esc(o.team)+'</b><button class="secondary" data-del="'+i+'">Remove</button></div><small>'+esc(o.sport)+' · '+esc(o.match)+'<br>'+esc(o.book)+' @ '+o.price.toFixed(2)+'</small></div>').join(''):'<p class="muted">No selections yet.</p>';
+el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+slip.splice(+b.dataset.del,1);renderSlip();
 });
-
-loadFeed();
+let stake=Math.max(0,Number($('stake').value)||0),odds=slip.reduce((a,o)=>a*o.price,1),ret=slip.length?stake*odds:0;
+$('combined').textContent=slip.length?odds.toFixed(2):'—';
+$('return').textContent=money(ret);
+$('profit').textContent=money(slip.length?ret-stake:0);
+$('prob').textContent=slip.length?(100/odds).toFixed(1)+'%':'—';
+}
+function renderEvents(){
+let q=$('search').value.toLowerCase(),sf=$('sportFilter').value;
+let list=events.filter(available).filter(e=>(!sf||sport(e)===sf)&&[sport(e),e.home_team,e.away_team].join(' ').toLowerCase().includes(q)).sort((a,b)=>new Date(a.commence_time)-new Date(b.commence_time)).slice(0,100);
+$('events').innerHTML=list.length?list.map(e=>'<div class="event"><b>'+esc(sport(e))+'</b><p>'+esc(e.away_team)+' vs '+esc(e.home_team)+'<br><small>'+esc(time(e.commence_time))+'</small></p><div class="choices">'+best(e).map(o=>'<div class="stat"><small>'+esc(o.team)+'<br>'+esc(o.book)+'</small><strong>'+o.price.toFixed(2)+'</strong><button data-id="'+esc(o.id)+'" data-team="'+esc(o.team)+'">Add</button></div>').join('')+'</div></div>').join(''):'<p class="muted">No upcoming events match your filters.</p>';
+$('events').querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{
+let e=events.find(x=>x.id===b.dataset.id),o=e&&best(e).find(x=>x.team===b.dataset.team);
+if(!o)return;
+slip=slip.filter(x=>x.id!==o.id);slip.push(o);renderSlip();
+});
+}
+async function load(){
+try{
+$('status').textContent='Loading...';
+let response=await fetch('./data/odds.json?t='+Date.now(),{cache:'no-store'});
+if(!response.ok)throw Error('HTTP '+response.status);
+let data=await response.json();
+if(!Array.isArray(data.events))throw Error('Expected events array');
+events=data.events;updated=data.updated_at||null;meta=data;
+let live=events.filter(available);
+$('count').textContent=live.length;
+$('sports').textContent=new Set(live.map(sport)).size;
+$('updated').textContent=time(updated);
+$('status').textContent='Published feed loaded';
+let names=[...new Set(live.map(sport))].sort();
+$('sportFilter').innerHTML='<option value="">All sports</option>'+names.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');
+renderEvents();build();renderSlip();
+}catch(e){
+$('status').textContent='Feed unavailable';
+$('recommendations').innerHTML='<p class="error">Cannot read data/odds.json. Run your GitHub Actions updater and check the published JSON.</p>';
+console.error(e);
+}
+}
+$('generate').onclick=build;
+$('refresh').onclick=load;
+$('window').onchange=build;
+$('legs').onchange=build;
+$('mix').onchange=build;
+$('search').oninput=renderEvents;
+$('sportFilter').onchange=renderEvents;
+$('stake').oninput=renderSlip;
+$('clear').onclick=()=>{slip=[];renderSlip()};
+$('copy').onclick=async()=>{
+if(!slip.length)return alert('Choose a multi first.');
+let odds=slip.reduce((a,o)=>a*o.price,1),stake=Math.max(0,Number($('stake').value)||0);
+let s=['NZ MULTI ANALYSER',...slip.map((o,i)=>(i+1)+'. '+o.team+' | '+o.match+' | '+o.sport+' | '+o.book+' @ '+o.price.toFixed(2)),'Combined odds: '+odds.toFixed(2),'Stake: '+money(stake),'Potential return: '+money(stake*odds),'Published feed: '+time(updated),'Odds-based selection, not validated positive EV. Verify current prices.'].join('\n');
+try{await navigator.clipboard.writeText(s);alert('Multi copied.')}
+catch(e){prompt('Copy your multi:',s)}
+};
+load();
 </script>
 </body>
 </html>
