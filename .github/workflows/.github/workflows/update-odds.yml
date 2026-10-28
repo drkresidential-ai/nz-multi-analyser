@@ -3,6 +3,9 @@ name: Update sports odds
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
