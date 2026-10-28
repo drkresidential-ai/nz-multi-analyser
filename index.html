@@ -222,7 +222,9 @@ return;
 }
 el.innerHTML=output.map((r,i)=>'<div class="pick"><div class="row"><b>'+r.name+'</b><span class="tag weak">Lower-confidence fallback</span></div><p class="muted" style="font-size:12px">'+r.picks.map(o=>esc(o.team)+' ('+esc(o.sport)+')').join(' · ')+'</p><div class="row"><span><b>'+r.combined.toFixed(2)+'</b> combined odds</span><button data-rec="'+i+'">Use this multi</button></div><small>Bookmaker price ranking only; no independently validated positive EV. '+(r.key==='value'?'Highlights bookmaker price disagreement, not proven value.':'')+'</small></div>').join('');
 el.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{
-slip=[...output[+b.dataset.rec].picks];renderSlip();
+slip=[...output[+b.dataset.rec].picks];
+renderSlip();
+openBetSlip();
 });
 
 function openBetSlip() {
