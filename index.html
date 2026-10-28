@@ -398,6 +398,16 @@ document.getElementById("refresh")
   .addEventListener("click", showCoverage);
 
 load();
+  <script>
+window.addEventListener('error', function(e) {
+  const s = document.getElementById('status');
+  if (s) {
+    s.textContent = 'JS ERROR: ' + e.message +
+      ' (line ' + e.lineno + ')';
+    s.style.color = '#ff7777';
+  }
+});
+</script>
 </script>
 </body>
 </html>
