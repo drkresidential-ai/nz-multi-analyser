@@ -12,63 +12,148 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get website files
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download NBA odds
+      - name: Fetch available sports and odds
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: |
-          python3 - <<'PY'
-          import json
+          python3 - <<'PYCODE'
           import os
+          import json
           import urllib.request
           import urllib.parse
+          import time
           from datetime import datetime, timezone
 
-          params = urllib.parse.urlencode({
-              "apiKey": os.environ["ODDS_API_KEY"],
-              "regions": "au",
-              "markets": "h2h",
-              "oddsFormat": "decimal"
-          })
+          key = os.environ.get('ODDS_API_KEY')
+          if not key:
+              raise RuntimeError('Missing ODDS_API_KEY secret')
 
-          url = (
-              "https://api.the-odds-api.com/v4/sports/"
-              "basketball_nba/odds/?" + params
+          base = 'https://api.the-odds-api.com/v4'
+
+          def get(path, params):
+              url = base + path + '?' + urllib.parse.urlencode({
+                  **params,
+                  'apiKey': key
+              })
+              request = urllib.request.Request(
+                  url,
+                  headers={'User-Agent': 'NZMultiAnalyser/2.0'}
+              )
+              with urllib.request.urlopen(
+                  request, timeout=35
+              ) as response:
+                  return json.load(response)
+
+          sports = get('/sports/', {})
+
+          # Keep API usage bounded.
+          # Available sports change throughout the year.
+          active = [
+              s for s in sports
+              if s.get('active')
+              and not s.get('has_outrights')
+              and not s.get('key', '').endswith('_winner')
+          ]
+
+          preferred = [
+              'basketball_nba',
+              'soccer_epl',
+              'soccer_uefa_champs_league',
+              'rugbyleague_nrl',
+              'americanfootball_nfl',
+              'icehockey_nhl',
+              'baseball_mlb',
+              'cricket_test_match',
+              'tennis_atp_french_open'
+          ]
+
+          ordered = sorted(
+              active,
+              key=lambda s: (
+                  preferred.index(s['key'])
+                  if s['key'] in preferred else 999,
+                  s.get('group', ''),
+                  s['key']
+              )
           )
 
-          request = urllib.request.Request(
-              url,
-              headers={"User-Agent": "NZMultiAnalyser/1.0"}
-          )
+          selected = []
+          groups = set()
 
-          with urllib.request.urlopen(
-              request, timeout=30
-          ) as response:
-              events = json.load(response)
+          # First choose a variety of sport groups.
+          for s in ordered:
+              if s.get('group') not in groups:
+                  selected.append(s)
+                  groups.add(s.get('group'))
+              if len(selected) >= 8:
+                  break
 
-          os.makedirs("data", exist_ok=True)
+          # Fill remaining slots.
+          for s in ordered:
+              if len(selected) >= 8:
+                  break
+              if s not in selected:
+                  selected.append(s)
 
-          with open("data/odds.json", "w") as f:
+          events = []
+          errors = []
+
+          for s in selected:
+              try:
+                  path = (
+                      '/sports/'
+                      + urllib.parse.quote(s['key'], safe='')
+                      + '/odds/'
+                  )
+
+                  items = get(path, {
+                      'regions': 'au',
+                      'markets': 'h2h',
+                      'oddsFormat': 'decimal'
+                  })
+
+                  events.extend(items)
+                  print(s['key'], len(items), 'events')
+
+              except Exception as e:
+                  errors.append(s['key'] + ': ' + str(e))
+                  print('Warning:', errors[-1])
+
+              time.sleep(0.2)
+
+          if not events and errors:
+              raise RuntimeError(
+                  'All sport odds requests failed: '
+                  + '; '.join(errors)
+              )
+
+          os.makedirs('data', exist_ok=True)
+
+          with open('data/odds.json', 'w') as f:
               json.dump({
-                  "updated_at": datetime.now(
+                  'updated_at': datetime.now(
                       timezone.utc
                   ).isoformat(),
-                  "sport": "NBA",
-                  "source": "The Odds API",
-                  "region": "au",
-                  "is_live_tab_nz": False,
-                  "events": events
+                  'source': 'The Odds API',
+                  'region': 'au',
+                  'markets': 'h2h',
+                  'sports_checked': [
+                      s['key'] for s in selected
+                  ],
+                  'errors': errors,
+                  'events': events
               }, f, indent=2)
-          PY
+          PYCODE
 
-      - name: Publish updated data
+      - name: Commit published odds
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/odds.json
           if ! git diff --cached --quiet; then
-            git commit -m "Update NBA odds data"
+            git commit -m "Update multi-sport odds data"
             git push
           fi
