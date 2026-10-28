@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NZ Multi Analyser</title>
+<style>
+:root{font-family:system-ui,Arial;background:#101827;color:#fff}
+*{box-sizing:border-box}
+body{margin:0;padding:18px;max-width:700px;margin-inline:auto}
+h1{font-size:27px;margin-bottom:5px}
+p{color:#b8c5d6}
+.card{background:#1d293b;border:1px solid #39475b;border-radius:15px;padding:16px;margin:15px 0}
+label{display:block;margin:12px 0 5px;font-size:14px;color:#c7d3e1}
+input{width:100%;padding:12px;background:#101827;color:white;border:1px solid #53647b;border-radius:9px;font-size:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#26384b;padding:14px;border-radius:10px}
+.stat strong{display:block;font-size:22px;margin-top:5px}
+small{color:#aebed0}
+button{background:#27b98c;border:0;border-radius:9px;padding:13px;font-size:16px;font-weight:bold;width:100%;margin-top:12px}
+.positive{color:#56e6b4}.negative{color:#ff9898}
+</style>
+</head>
+<body>
+<h1>🏀 NZ Multi Analyser</h1>
+<p>Free sports multi calculator • Mobile edition</p>
+<div class="card">
+<h2>Three-leg multi</h2>
+<div id="legs"></div>
+<label>Stake (NZD)</label>
+<input id="stake" type="number" min="0" value="10" step="1">
+</div>
+<div class="card">
+<h2>Multi summary</h2>
+<div class="grid">
+<div class="stat"><small>Combined odds</small><strong id="combined">—</strong></div>
+<div class="stat"><small>Potential return</small><strong id="return">—</strong></div>
+<div class="stat"><small>Potential profit</small><strong id="profit">—</strong></div>
+<div class="stat"><small>Estimated value</small><strong id="value">—</strong></div>
+</div>
+<p id="message"></p>
+</div>
+<div class="card">
+<h2>Live odds connection</h2>
+<p>Not connected yet. Prices must be entered manually until a free data feed is verified.</p>
+<p>Never assume comparison odds are current NZ TAB prices.</p>
+</div>
+<script>
+const container=document.getElementById("legs");
+for(let i=1;i<=3;i++){
+container.insertAdjacentHTML("beforeend",`
+<h3>Leg ${i}</h3>
+<label>Selection</label>
+<input id="name${i}" placeholder="Team or selection">
+<div class="grid">
+<div>
+<label>Decimal odds</label>
+<input id="odds${i}" type="number" min="1.01" step=".01" placeholder="e.g. 1.80">
+</div>
+<div>
+<label>Your estimated win probability (%)</label>
+<input id="prob${i}" type="number" min="0" max="100" step=".1" placeholder="e.g. 60">
+</div>
+</div>`);
+}
+const ids=["stake",...Array.from({length:3},(_,i)=>["odds"+(i+1),"prob"+(i+1)]).flat()];
+ids.forEach(id=>document.getElementById(id).addEventListener("input",calculate));
+function calculate(){
+const stake=Number(document.getElementById("stake").value);
+const odds=[1,2,3].map(i=>Number(document.getElementById("odds"+i).value));
+const probs=[1,2,3].map(i=>Number(document.getElementById("prob"+i).value));
+const valid=Number.isFinite(stake)&&stake>0&&odds.every(o=>o>1)&&probs.every(p=>p>0&&p<=100);
+if(!valid){
+["combined","return","profit","value"].forEach(id=>document.getElementById(id).textContent="—");
+document.getElementById("message").textContent="Enter all three odds and probability estimates.";
+return;
+}
+const combined=odds.reduce((a,b)=>a*b,1);
+const payout=stake*combined;
+const probability=probs.reduce((a,b)=>a*b/100,1)/100;
+const ev=(combined*probability-1)*100;
+document.getElementById("combined").textContent=combined.toFixed(2);
+document.getElementById("return").textContent="$"+payout.toFixed(2);
+document.getElementById("profit").textContent="$"+(payout-stake).toFixed(2);
+const value=document.getElementById("value");
+value.textContent=(ev>=0?"+":"")+ev.toFixed(1)+"%";
+value.className=ev>=0?"positive":"negative";
+document.getElementById("message").textContent=
+"Estimated chance of all three winning: "+(probability*100).toFixed(1)+"%. Assumes independent outcomes. Estimates are not guarantees.";
+}
+calculate();
+</script>
+</body>
+</html>
