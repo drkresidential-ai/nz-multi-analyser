@@ -3,19 +3,26 @@ name: Update sports odds
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 18 * * *"
 
 permissions:
   contents: write
 
+concurrency:
+  group: sports-odds-update
+  cancel-in-progress: false
+
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - name: Checkout
+      - name: Checkout website
         uses: actions/checkout@v4
 
-      - name: Fetch available sports and odds
+      - name: Update quota-aware all-sports feed
         env:
           ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
         run: |
@@ -24,136 +31,319 @@ jobs:
           import json
           import urllib.request
           import urllib.parse
-          import time
-          from datetime import datetime, timezone
+          import urllib.error
+          from datetime import datetime, timezone, timedelta
 
-          key = os.environ.get('ODDS_API_KEY')
-          if not key:
-              raise RuntimeError('Missing ODDS_API_KEY secret')
+          KEY = os.environ.get("ODDS_API_KEY")
+          if not KEY:
+              raise RuntimeError("ODDS_API_KEY secret missing")
 
-          base = 'https://api.the-odds-api.com/v4'
+          BASE = "https://api.the-odds-api.com/v4"
+          MAX_ODDS_CALLS = 6
+          MIN_CREDITS_RESERVE = 25
+          MAX_SPORTS_TO_INSPECT = 35
+          WINDOW_HOURS = 72
 
-          def get(path, params):
-              url = base + path + '?' + urllib.parse.urlencode({
-                  **params,
-                  'apiKey': key
-              })
-              request = urllib.request.Request(
+          now = datetime.now(timezone.utc)
+          cutoff = now + timedelta(hours=WINDOW_HOURS)
+
+          def parse_time(value):
+              try:
+                  return datetime.fromisoformat(
+                      value.replace("Z", "+00:00")
+                  )
+              except (ValueError, AttributeError):
+                  return None
+
+          def request(path, params=None):
+              params = dict(params or {})
+              params["apiKey"] = KEY
+              url = (
+                  BASE + path + "?" +
+                  urllib.parse.urlencode(params)
+              )
+              req = urllib.request.Request(
                   url,
-                  headers={'User-Agent': 'NZMultiAnalyser/2.0'}
+                  headers={
+                      "User-Agent": "NZMultiAnalyser/3.0"
+                  }
               )
               with urllib.request.urlopen(
-                  request, timeout=35
+                  req, timeout=30
               ) as response:
-                  return json.load(response)
+                  data = json.load(response)
+                  headers = dict(response.headers)
+                  return data, headers
 
-          sports = get('/sports/', {})
+          def header_int(headers, key):
+              for k, v in headers.items():
+                  if k.lower() == key.lower():
+                      try:
+                          return int(v)
+                      except ValueError:
+                          return None
+              return None
 
-          # Keep API usage bounded.
-          # Available sports change throughout the year.
-          active = [
-              s for s in sports
-              if s.get('active')
-              and not s.get('has_outrights')
-              and not s.get('key', '').endswith('_winner')
-          ]
+          def priority(s):
+              key = s.get("key", "")
+              group = s.get("group", "").lower()
 
-          preferred = [
-              'basketball_nba',
-              'soccer_epl',
-              'soccer_uefa_champs_league',
-              'rugbyleague_nrl',
-              'americanfootball_nfl',
-              'icehockey_nhl',
-              'baseball_mlb',
-              'cricket_test_match',
-              'tennis_atp_french_open'
-          ]
+              if "rugbyleague" in key:
+                  return 0
+              if "rugbyunion" in key:
+                  return 1
+              if key == "basketball_nba":
+                  return 2
+              if "soccer" in key:
+                  return 3
+              if "cricket" in key:
+                  return 4
+              if "tennis" in key:
+                  return 5
+              if "aussierules" in key:
+                  return 6
+              if "americanfootball" in key:
+                  return 7
+              if "icehockey" in key:
+                  return 8
+              if "baseball" in key:
+                  return 9
+              if "boxing" in key:
+                  return 10
+              return 20
 
-          ordered = sorted(
-              active,
-              key=lambda s: (
-                  preferred.index(s['key'])
-                  if s['key'] in preferred else 999,
-                  s.get('group', ''),
-                  s['key']
+          sports, headers = request("/sports/")
+          active = sorted(
+              [
+                  s for s in sports
+                  if s.get("active")
+                  and not s.get("has_outrights")
+                  and not s.get("key", "").endswith("_winner")
+              ],
+              key=lambda s: (priority(s), s["key"])
+          )
+
+          summary = []
+          eligible = []
+          errors = []
+          remaining = header_int(
+              headers, "x-requests-remaining"
+          )
+
+          # Fixture discovery uses the quota-free
+          # /events endpoint in The Odds API v4.
+          for s in active[:MAX_SPORTS_TO_INSPECT]:
+              key = s["key"]
+              record = {
+                  "key": key,
+                  "sport": s.get("title", key),
+                  "group": s.get("group", "Other"),
+                  "upcoming_fixtures": 0,
+                  "priced_events": 0,
+                  "status": "No upcoming fixtures"
+              }
+
+              try:
+                  fixtures, _ = request(
+                      "/sports/" + urllib.parse.quote(
+                          key, safe=""
+                      ) + "/events"
+                  )
+
+                  valid = []
+                  for event in fixtures:
+                      start = parse_time(
+                          event.get("commence_time")
+                      )
+                      if start and now < start <= cutoff:
+                          valid.append(event)
+
+                  record["upcoming_fixtures"] = len(valid)
+
+                  if valid:
+                      first = min(
+                          parse_time(
+                              e["commence_time"]
+                          ) for e in valid
+                      )
+                      eligible.append({
+                          "sport": s,
+                          "first": first,
+                          "count": len(valid),
+                          "record": record
+                      })
+                      record["status"] = "Awaiting odds"
+
+              except Exception as exc:
+                  record["status"] = "Fixture check failed"
+                  errors.append(
+                      key + ": " + str(exc)
+                  )
+
+              summary.append(record)
+
+          # Prioritise earlier starts while favouring
+          # different sport groups where possible.
+          eligible.sort(
+              key=lambda x: (
+                  x["first"],
+                  priority(x["sport"])
               )
           )
 
-          selected = []
-          groups = set()
+          chosen = []
+          seen_groups = set()
 
-          # First choose a variety of sport groups.
-          for s in ordered:
-              if s.get('group') not in groups:
-                  selected.append(s)
-                  groups.add(s.get('group'))
-              if len(selected) >= 8:
+          for item in eligible:
+              group = item["sport"].get("group", "")
+              if group not in seen_groups:
+                  chosen.append(item)
+                  seen_groups.add(group)
+              if len(chosen) >= MAX_ODDS_CALLS:
                   break
 
-          # Fill remaining slots.
-          for s in ordered:
-              if len(selected) >= 8:
+          for item in eligible:
+              if len(chosen) >= MAX_ODDS_CALLS:
                   break
-              if s not in selected:
-                  selected.append(s)
+              if item not in chosen:
+                  chosen.append(item)
 
           events = []
-          errors = []
+          checked = []
+          calls = 0
 
-          for s in selected:
+          for item in chosen:
+              if calls >= MAX_ODDS_CALLS:
+                  break
+
+              if (
+                  remaining is not None
+                  and remaining <= MIN_CREDITS_RESERVE
+              ):
+                  item["record"]["status"] = (
+                      "Skipped: credit reserve"
+                  )
+                  continue
+
+              key = item["sport"]["key"]
+
               try:
-                  path = (
-                      '/sports/'
-                      + urllib.parse.quote(s['key'], safe='')
-                      + '/odds/'
+                  data, headers = request(
+                      "/sports/" + urllib.parse.quote(
+                          key, safe=""
+                      ) + "/odds/",
+                      {
+                          "regions": "au",
+                          "markets": "h2h",
+                          "oddsFormat": "decimal"
+                      }
                   )
 
-                  items = get(path, {
-                      'regions': 'au',
-                      'markets': 'h2h',
-                      'oddsFormat': 'decimal'
-                  })
+                  calls += 1
+                  checked.append(key)
 
-                  events.extend(items)
-                  print(s['key'], len(items), 'events')
+                  new_remaining = header_int(
+                      headers, "x-requests-remaining"
+                  )
+                  if new_remaining is not None:
+                      remaining = new_remaining
 
-              except Exception as e:
-                  errors.append(s['key'] + ': ' + str(e))
-                  print('Warning:', errors[-1])
+                  valid = []
+                  for event in data:
+                      start = parse_time(
+                          event.get("commence_time")
+                      )
+                      if (
+                          start
+                          and now < start <= cutoff
+                          and event.get("bookmakers")
+                      ):
+                          valid.append(event)
 
-              time.sleep(0.2)
+                  events.extend(valid)
+                  item["record"]["priced_events"] = len(valid)
+                  item["record"]["status"] = (
+                      "Odds collected" if valid
+                      else "No priced events"
+                  )
 
-          if not events and errors:
-              raise RuntimeError(
-                  'All sport odds requests failed: '
-                  + '; '.join(errors)
-              )
+                  print(
+                      key, "priced events:", len(valid),
+                      "credits remaining:", remaining
+                  )
 
-          os.makedirs('data', exist_ok=True)
+              except urllib.error.HTTPError as exc:
+                  item["record"]["status"] = (
+                      "Odds request failed"
+                  )
+                  errors.append(
+                      key + ": HTTP " + str(exc.code)
+                  )
+                  if exc.code in (401, 402, 429):
+                      print("Stopping after API error:", exc.code)
+                      break
 
-          with open('data/odds.json', 'w') as f:
-              json.dump({
-                  'updated_at': datetime.now(
-                      timezone.utc
-                  ).isoformat(),
-                  'source': 'The Odds API',
-                  'region': 'au',
-                  'markets': 'h2h',
-                  'sports_checked': [
-                      s['key'] for s in selected
-                  ],
-                  'errors': errors,
-                  'events': events
-              }, f, indent=2)
+              except Exception as exc:
+                  item["record"]["status"] = (
+                      "Odds request failed"
+                  )
+                  errors.append(key + ": " + str(exc))
+
+          # Mark eligible sports not selected.
+          for item in eligible:
+              if item["record"]["status"] == "Awaiting odds":
+                  item["record"]["status"] = (
+                      "Not selected this run"
+                  )
+
+          events.sort(
+              key=lambda e: e.get("commence_time", "")
+          )
+
+          payload = {
+              "updated_at": now.isoformat(),
+              "source": "The Odds API",
+              "region": "au",
+              "markets": "h2h",
+              "is_live_tab_nz": False,
+              "recommendation_priority": 85,
+              "window_hours": WINDOW_HOURS,
+              "sports_checked": checked,
+              "sports_summary": summary,
+              "api_usage": {
+                  "odds_calls_this_run": calls,
+                  "max_odds_calls": MAX_ODDS_CALLS,
+                  "credits_remaining": remaining,
+                  "minimum_credit_reserve": MIN_CREDITS_RESERVE
+              },
+              "errors": errors,
+              "events": events
+          }
+
+          os.makedirs("data", exist_ok=True)
+          with open(
+              "data/odds.json", "w", encoding="utf-8"
+          ) as f:
+              json.dump(payload, f, indent=2)
+
+          print("Total priced events:", len(events))
+          print(
+              "Sports with odds:",
+              len(set(
+                  e["sport_key"] for e in events
+              ))
+          )
+          print("API odds calls:", calls)
+          print("Credits remaining:", remaining)
+          print("Errors:", errors)
           PYCODE
 
-      - name: Commit published odds
+      - name: Publish feed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/odds.json
           if ! git diff --cached --quiet; then
-            git commit -m "Update multi-sport odds data"
+            git commit -m "Update quota-aware sports feed"
             git push
           fi
