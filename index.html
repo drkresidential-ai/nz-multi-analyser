@@ -89,7 +89,18 @@ button:disabled{opacity:.5}
 </div>
 <p class="muted" style="font-size:12px">The 85% setting prioritises displaying a fallback selection when qualifying events exist; it is not a confidence score. A genuine value claim requires a separately validated model.</p>
 <button id="generate">Generate recommended multis</button>
+
+<section class="card">
+  <h2>📊 Sports Coverage</h2>
+  <p class="muted">
+    Upcoming fixtures and published bookmaker odds
+    collected during the latest update.
+  </p>
+  <div id="coverage">
+    <p class="muted">Loading sports coverage...</p>
+  </div>
 </section>
+
 <div class="layout">
 <div>
 <section class="card">
@@ -273,7 +284,105 @@ let odds=slip.reduce((a,o)=>a*o.price,1),stake=Math.max(0,Number($('stake').valu
 let s=['NZ MULTI ANALYSER',...slip.map((o,i)=>(i+1)+'. '+o.team+' | '+o.match+' | '+o.sport+' | '+o.book+' @ '+o.price.toFixed(2)),'Combined odds: '+odds.toFixed(2),'Stake: '+money(stake),'Potential return: '+money(stake*odds),'Published feed: '+time(updated),'Odds-based selection, not validated positive EV. Verify current prices.'].join('\n');
 try{await navigator.clipboard.writeText(s);alert('Multi copied.')}
 catch(e){prompt('Copy your multi:',s)}
-};
+
+async function showCoverage() {
+  const target = document.getElementById("coverage");
+  if (!target) return;
+
+  try {
+    const response = await fetch(
+      "./data/odds.json?t=" + Date.now(),
+      { cache: "no-store" }
+    );
+
+    if (!response.ok) throw Error("Feed unavailable");
+
+    const data = await response.json();
+    const summary = data.sports_summary || [];
+
+    if (!summary.length) {
+      target.textContent =
+        "Run the upgraded odds updater to see coverage.";
+      return;
+    }
+
+    const ordered = [...summary].sort(
+      (a, b) =>
+        b.priced_events - a.priced_events ||
+        b.upcoming_fixtures - a.upcoming_fixtures
+    );
+
+    const totalSports = ordered.filter(
+      s => s.priced_events > 0
+    ).length;
+
+    const heading = document.createElement("p");
+    heading.textContent =
+      totalSports + " sports with published odds";
+    target.replaceChildren(heading);
+
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.fontSize = "13px";
+    table.style.borderCollapse = "collapse";
+
+    const head = document.createElement("tr");
+
+    for (const name of ["Sport", "Fixtures", "Odds", "Status"]) {
+      const th = document.createElement("th");
+      th.textContent = name;
+      th.style.textAlign = "left";
+      th.style.padding = "8px 4px";
+      head.appendChild(th);
+    }
+
+    table.appendChild(head);
+
+    for (const s of ordered) {
+      const tr = document.createElement("tr");
+
+      for (const value of [
+        s.sport,
+        s.upcoming_fixtures,
+        s.priced_events,
+        s.status
+      ]) {
+        const td = document.createElement("td");
+        td.textContent = String(value);
+        td.style.padding = "8px 4px";
+        td.style.borderTop = "1px solid #34465e";
+        tr.appendChild(td);
+      }
+
+      table.appendChild(tr);
+    }
+
+    const scroller = document.createElement("div");
+    scroller.style.overflowX = "auto";
+    scroller.appendChild(table);
+    target.appendChild(scroller);
+
+    const usage = data.api_usage || {};
+    const note = document.createElement("p");
+    note.className = "muted";
+    note.style.fontSize = "12px";
+    note.textContent =
+      "Odds requests this run: " +
+      (usage.odds_calls_this_run ?? "Unknown") +
+      " | Credits remaining: " +
+      (usage.credits_remaining ?? "Unknown");
+    target.appendChild(note);
+
+  } catch (error) {
+    target.textContent =
+      "Sports coverage information unavailable.";
+  }
+}
+
+showCoverage();
+document.getElementById("refresh")
+  .addEventListener("click", showCoverage);
+
 load();
 </script>
 </body>
